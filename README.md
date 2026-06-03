@@ -27,13 +27,15 @@ o	Name: honeypot-logs
 o	Region: East US 2 (must match your resource group region)
 4.	Click Review + create → Create
 5.	Wait ~1 minute for deployment to finish, then click Go to resource
- 
+ <img width="1108" height="392" alt="image" src="https://github.com/user-attachments/assets/d3247249-baf5-4a2e-92f7-1ed78acd2f8a" />
+
 ________________________________________
 Step 3 — Confirm it worked
 Once we're on the workspace page, we should see:
 •	A left sidebar with options like "Logs", "Agents", "Tables"
 •	Our workspace ID and primary key under Agents (we'll need these later)
- 
+ <img width="322" height="625" alt="image" src="https://github.com/user-attachments/assets/57437fcc-602c-46b5-bc25-8fb782830b84" />
+
 That's Phase 1 done. The "database" for our SIEM is now live.
 Phase 2: Connecting Microsoft Sentinel to the Log Analytics Workspace
 Step 1 — Enable Microsoft Sentinel
@@ -43,7 +45,8 @@ Step 1 — Enable Microsoft Sentinel
 4.	Click Add Microsoft Sentinel
 5.	Wait 1 minute; Sentinel will provision on top of your workspace
 We should land on the Sentinel overview dashboard. This is our SIEM.
- 
+ <img width="1125" height="356" alt="image" src="https://github.com/user-attachments/assets/949dea5c-cb22-40c6-b2cc-ca761c7914f9" />
+
 ________________________________________
 Step 2 — Add the Windows Security Events Connector
 This tells Sentinel to collect login events (including failed ones) from our VM later.
@@ -57,15 +60,18 @@ If this fail here's the workaround:
 3.	In the left sidebar click Data connectors
 4.	At the top we'll see a banner saying "More content at Content hub"; click that
 5.	Search "Windows Security Events" and install from there
- 
+ <img width="1125" height="502" alt="image" src="https://github.com/user-attachments/assets/7138f1da-07c4-46ca-a333-1b1560986f4f" />
+
 ________________________________________
 Step 3 — Configure the Data Connector
 1.	In the Sentinel left sidebar, click Data connectors
 2.	Search "Windows Security Events via AMA" and click it
 3.	Click Open connector page
 4.	We'll see a section called Configuration, leave this for now. we'll complete it in Phase 3 after the VM exists, because the connector needs a machine to point at.
- 
- 
+ <img width="1125" height="446" alt="image" src="https://github.com/user-attachments/assets/b027cec7-c210-40c2-b8bf-559f90cf4b54" />
+
+ <img width="1125" height="484" alt="image" src="https://github.com/user-attachments/assets/8e57f561-03fc-4477-b7f3-9a7a0aafbdb0" />
+
 ________________________________________
 Step 4 — Confirm Sentinel is live
 Back on the Sentinel overview page, we should see:
@@ -113,7 +119,8 @@ o	Set:
 	Name: DANGER-AllowAll
 o	Click Add
 o	Click OK to save the NSG
- 
+ <img width="1125" height="486" alt="image" src="https://github.com/user-attachments/assets/a2d91420-f1f1-487c-8d1d-fecf73c6bf5f" />
+
 3.	Back on the Networking tab, leave everything else as default
 ________________________________________
 Step 3 — Finish creating the VM
@@ -123,18 +130,21 @@ Step 3 — Finish creating the VM
 4.	Click Create
 5.	Deployment takes 3–5 minutes — wait for "Your deployment is complete"
 6.	Click Go to resource
- 
+ <img width="1125" height="496" alt="image" src="https://github.com/user-attachments/assets/173ff778-00c4-4465-9fb3-04caddbbd643" />
+
 ________________________________________
 Step 4 — Disable the Windows Firewall on the VM
 The NSG opens the door at the Azure level, but Windows has its own firewall too. You need to disable it so attackers can actually reach the machine.
 1.	On your VM page, copy the Public IP address (shown on the overview) // 52.159.125.66
 2.	On your local computer, open Remote Desktop Connection (search "RDP" in Windows start menu, or use Microsoft Remote Desktop on Mac)
 3.	Connect to the public IP, log in with your labuser credentials
- 
+ <img width="641" height="616" alt="image" src="https://github.com/user-attachments/assets/5c026fca-b90b-4ac4-a7fc-88eebfbc058d" />
+
 4.	Once inside the VM, open the Start menu and search "wf.msc" → open it
 5.	Click Windows Defender Firewall Properties
 6.	On the Domain Profile, Private Profile, and Public Profile tabs — set Firewall state to Off
- 
+ <img width="770" height="646" alt="image" src="https://github.com/user-attachments/assets/8f0da098-b738-4b10-bcf3-2b56525282fe" />
+
 7.	Click Apply → OK
 Difficulty I had that I was not able to connect RDP to the cloud VM. Then I checked by steps and found that inbound rule was not created. I might have not saved when I created it. This was stopping my host windows from connecting to this cloud VM.
 Phase 4: Log ingestion and verification
