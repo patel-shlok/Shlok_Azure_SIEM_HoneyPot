@@ -3,6 +3,7 @@ Documentation of my project on Azure SIEM
 
 
 Phase 1: Setting up the Azure Resource Group and Log Analytics Workspace
+
 Step 1 — Creating a Resource Group
 A Resource Group is just a folder that holds all our project's Azure resources together.
 1.	Go to portal.azure.com and sign in
