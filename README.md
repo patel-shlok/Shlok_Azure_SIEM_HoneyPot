@@ -9,11 +9,11 @@ A Resource Group is just a folder that holds all our project's Azure resources t
 1.	Go to portal.azure.com and sign in
 2.	In the top search bar, type "Resource groups" and click it
 3.	Click + Create
-4.	Fill in: 
-o	Subscription: Our Azure for Students sub
-o	Resource group name: honeypot-lab (or whatever you like)
-o	Region: East US 2 (close, low cost, good for students)
-5.	Click Review + create → Create
+4.	Fill in:
+Subscription: Our Azure for Students sub
+Resource group name: honeypot-lab (or whatever you like)
+Region: East US 2 (close, low cost, good for students)
+6.	Click Review + create → Create
  <img width="1096" height="391" alt="image" src="https://github.com/user-attachments/assets/9aec6b3a-5489-4d0e-a509-d60ee74bb1f2" />
 
 ________________________________________
