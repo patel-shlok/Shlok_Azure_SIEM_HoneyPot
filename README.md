@@ -147,6 +147,7 @@ The NSG opens the door at the Azure level, but Windows has its own firewall too.
 
 7.	Click Apply → OK
 Difficulty I had that I was not able to connect RDP to the cloud VM. Then I checked by steps and found that inbound rule was not created. I might have not saved when I created it. This was stopping my host windows from connecting to this cloud VM.
+
 Phase 4: Log ingestion and verification
 Step 1 — Create a Data Collection Rule
 1.	In the Azure portal search bar, type "Monitor" and click it
@@ -159,43 +160,100 @@ Resource group	honeypot-lab
 Region	East US 2
 Platform type	Windows
 5.	Click Next: Resources
+ <img width="1025" height="453" alt="image" src="https://github.com/user-attachments/assets/180eb961-db9c-462f-af70-8c64382f21e5" />
+
 ________________________________________
-Step 2 — Add VM as a resource
+Step 2 — Add your VM as a resource
 1.	Click + Add resources
-2.	Expand subscription → expand honeypot-lab
+2.	Expand your subscription → expand honeypot-lab
 3.	Check the box next to HoneyPot-VM
 4.	Click Apply
-5.	We'll see a prompt asking to install the Azure Monitor Agent on the VM — click Enable to confirm
+5.	You'll see a prompt asking to install the Azure Monitor Agent on the VM — click Enable to confirm
 6.	Click Next: Collect and deliver
+ <img width="1067" height="332" alt="image" src="https://github.com/user-attachments/assets/0fab1ee6-6471-4b7d-968e-cf4c2b62e0aa" />
+
 ________________________________________
 Step 3 — Configure what logs to collect
 1.	Click + Add data source
 2.	For Data source type, select Windows Event Logs
 3.	Select Basic and check these boxes: 
-o	✅ Audit failure (this captures failed login attempts — the most important one)
-o	✅ Audit success (captures successful logins)
+<img width="661" height="749" alt="image" src="https://github.com/user-attachments/assets/852a591f-1ae4-4312-bfc0-aba91b8ab761" />
+
 4.	Click Next: Destination
 5.	For destination: 
 o	Destination type: Log Analytics Workspace
 o	Subscription: Azure for Students
 o	Account or namespace: honeypot-logs
 6.	Click Add data source
+ <img width="897" height="355" alt="image" src="https://github.com/user-attachments/assets/17e32c85-ae0f-4e16-8931-491adc299dfe" />
+
 7.	Click Next: Review + create → Create
+ <img width="1069" height="273" alt="image" src="https://github.com/user-attachments/assets/49bc9c17-7a97-405c-b971-663400e3f129" />
+
 ________________________________________
-Step 4 — Verify the Agent installed on our VM
+Step 4 — Verify the Agent installed on your VM
 1.	Go to Virtual machines → HoneyPot-VM
 2.	In the left sidebar click Extensions + applications
-3.	We should see AzureMonitorWindowsAgent listed with status Provisioning succeeded
-4.	This may take 5–10 minutes to appear — refresh the page periodically
+3.	You should see AzureMonitorWindowsAgent listed with status Provisioning succeeded
+4.	This may take 5–10 minutes to appear — refresh the page periodically.
+ <img width="1031" height="300" alt="image" src="https://github.com/user-attachments/assets/0ac03d82-fc2f-42d1-b3d0-ed52d1596f77" />
+
 ________________________________________
 Step 5 — Verify logs are flowing into Sentinel
 1.	Go to Microsoft Sentinel → select honeypot-logs
 2.	In the left sidebar click Logs
+ <img width="1065" height="469" alt="image" src="https://github.com/user-attachments/assets/3fb0f361-9808-4326-b6c0-ae026f47204b" />
+
 3.	In the query editor, type this KQL query and click Run:
 SecurityEvent
 | where EventID == 4625
 | take 10
-4.	If we get results back — even just one row — logs are flowing and Phase 4 is complete
-5.	If we get no results, wait 15–20 minutes and try again. The agent needs time to initialize and attackers need a moment to find our VM
+4.	If you get results back — even just one row — logs are flowing and Phase 4 is complete
+5.	If you get no results, wait 15–20 minutes and try again. The agent needs time to initialize and attackers need a moment to find you
+ <img width="1005" height="569" alt="image" src="https://github.com/user-attachments/assets/55f5b25d-f30f-41d8-bf45-0143f71c7c6d" />
+
 
 Phase 5: KQL detection and alerting
+Step 1 — Query Failed RDP Logons
+In Sentinel → Logs, run this to pull all failed login attempts with attacker details:
+Event
+| where EventID == 4625
+| where TimeGenerated > ago(24h)
+| project TimeGenerated, Account, IpAddress, WorkstationName, LogonTypeName
+| order by TimeGenerated desc
+Step 2 — Enrich IPs with Geolocation
+Azure doesn't give you geo data natively, so you use a watchlist. Download a free IP-to-geo CSV (like from db-ip.com) and upload it to Sentinel:
+•	Go to Sentinel → Watchlists → + New
+•	Upload the CSV, name it geoip
+•	Set the search key to the IP column
+Then join it in KQL:
+let GeoIPDB = _GetWatchlist('geoip');
+Event
+| where EventID == 4625
+| where TimeGenerated > ago(24h)
+| evaluate ipv4_lookup(GeoIPDB, IpAddress, network)
+| project TimeGenerated, IpAddress, Account, country, latitude, longitude
+| summarize AttackCount = count() by country, latitude, longitude
+| order by AttackCount desc
+Step 3 — Visualize on a Map
+•	In Sentinel → Workbooks → + New
+•	Add a query element, paste the geo query above
+•	Change the visualization type to Map
+•	Set Latitude and Longitude fields accordingly
+•	Size the bubbles by AttackCount
+This gives us a live world map of brute-force sources
+Step 4 — Create an Analytics Alert Rule
+•	Go to Sentinel → Analytics → + Create → Scheduled query rule
+•	Name: Brute Force RDP Detection
+Event
+| where EventID == 4625
+| summarize FailedAttempts = count() by IpAddress, Account, bin(TimeGenerated, 5m)
+| where FailedAttempts >= 5
+•	Run every 5 minutes, lookup last 5 minutes
+•	Alert when results > 0
+
+Step 5 — Confirm Incidents Appear
+•	Go to Sentinel → Incidents
+•	You should see brute-force incidents auto-generated with attacker IP, targeted account, and timestamps
+
+<img width="1124" height="486" alt="image" src="https://github.com/user-attachments/assets/bab6cd9e-a65b-4b65-abf4-0f0e66b21d5e" />
