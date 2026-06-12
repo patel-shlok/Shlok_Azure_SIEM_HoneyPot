@@ -79,7 +79,7 @@ Back on the Sentinel overview page, we should see:
 •	Data connectors tile (showing 0 connected for now, that's fine)
 •	Incidents, Workbooks, Analytics in the left sidebar
 •	Your workspace name honeypot-logs shown at the top
-
+________________________________________
 Phase 3: deploying the Windows honeypot VM and opening it to the internet
 Step 1 — Create the Virtual Machine
 1.	In the Azure portal search bar, type "Virtual machines" and click it
@@ -148,7 +148,7 @@ The NSG opens the door at the Azure level, but Windows has its own firewall too.
 
 7.	Click Apply → OK
 Difficulty I had that I was not able to connect RDP to the cloud VM. Then I checked by steps and found that inbound rule was not created. I might have not saved when I created it. This was stopping my host windows from connecting to this cloud VM.
-
+________________________________________
 Phase 4: Log ingestion and verification
 Step 1 — Create a Data Collection Rule
 1.	In the Azure portal search bar, type "Monitor" and click it
@@ -213,7 +213,7 @@ SecurityEvent
 5.	If you get no results, wait 15–20 minutes and try again. The agent needs time to initialize and attackers need a moment to find you
  <img width="1005" height="569" alt="image" src="https://github.com/user-attachments/assets/55f5b25d-f30f-41d8-bf45-0143f71c7c6d" />
 
-
+________________________________________
 Phase 5: KQL detection and alerting
 
 Step 1 — Query Failed RDP Logons
@@ -224,7 +224,7 @@ Event
 | where TimeGenerated > ago(24h)
 | project TimeGenerated, Account, IpAddress, WorkstationName, LogonTypeName
 | order by TimeGenerated desc
-
+________________________________________
 Step 2 — Enrich IPs with Geolocation
 Azure doesn't give us geo data natively, so we use a watchlist. Download a free IP-to-geo CSV (like from db-ip.com) and upload it to Sentinel:
 •	Go to Sentinel → Watchlists → + New
@@ -241,7 +241,7 @@ Event
 | project TimeGenerated, IpAddress, Account, country, latitude, longitude
 | summarize AttackCount = count() by country, latitude, longitude
 | order by AttackCount desc
-
+________________________________________
 Step 3 — Visualize on a Map
 •	In Sentinel → Workbooks → + New
 •	Add a query element, paste the geo query above
@@ -249,7 +249,7 @@ Step 3 — Visualize on a Map
 •	Set Latitude and Longitude fields accordingly
 •	Size the bubbles by AttackCount
 This gives us a live world map of brute-force sources
-
+________________________________________
 Step 4 — Create an Analytics Alert Rule
 •	Go to Sentinel → Analytics → + Create → Scheduled query rule
 •	Name: Brute Force RDP Detection
@@ -259,7 +259,7 @@ Event
 | where FailedAttempts >= 5
 •	Run every 5 minutes, lookup last 5 minutes
 •	Alert when results > 0
-
+________________________________________
 Step 5 — Confirm Incidents Appear
 •	Go to Sentinel → Incidents
 •	We should see brute-force incidents auto-generated with attacker IP, targeted account, and timestamps
