@@ -214,19 +214,24 @@ SecurityEvent
 
 
 Phase 5: KQL detection and alerting
+
 Step 1 — Query Failed RDP Logons
 In Sentinel → Logs, run this to pull all failed login attempts with attacker details:
+
 Event
 | where EventID == 4625
 | where TimeGenerated > ago(24h)
 | project TimeGenerated, Account, IpAddress, WorkstationName, LogonTypeName
 | order by TimeGenerated desc
+
 Step 2 — Enrich IPs with Geolocation
-Azure doesn't give you geo data natively, so you use a watchlist. Download a free IP-to-geo CSV (like from db-ip.com) and upload it to Sentinel:
+Azure doesn't give us geo data natively, so we use a watchlist. Download a free IP-to-geo CSV (like from db-ip.com) and upload it to Sentinel:
 •	Go to Sentinel → Watchlists → + New
 •	Upload the CSV, name it geoip
 •	Set the search key to the IP column
+
 Then join it in KQL:
+
 let GeoIPDB = _GetWatchlist('geoip');
 Event
 | where EventID == 4625
@@ -235,6 +240,7 @@ Event
 | project TimeGenerated, IpAddress, Account, country, latitude, longitude
 | summarize AttackCount = count() by country, latitude, longitude
 | order by AttackCount desc
+
 Step 3 — Visualize on a Map
 •	In Sentinel → Workbooks → + New
 •	Add a query element, paste the geo query above
@@ -242,6 +248,7 @@ Step 3 — Visualize on a Map
 •	Set Latitude and Longitude fields accordingly
 •	Size the bubbles by AttackCount
 This gives us a live world map of brute-force sources
+
 Step 4 — Create an Analytics Alert Rule
 •	Go to Sentinel → Analytics → + Create → Scheduled query rule
 •	Name: Brute Force RDP Detection
@@ -254,6 +261,6 @@ Event
 
 Step 5 — Confirm Incidents Appear
 •	Go to Sentinel → Incidents
-•	You should see brute-force incidents auto-generated with attacker IP, targeted account, and timestamps
+•	We should see brute-force incidents auto-generated with attacker IP, targeted account, and timestamps
 
 <img width="1124" height="486" alt="image" src="https://github.com/user-attachments/assets/bab6cd9e-a65b-4b65-abf4-0f0e66b21d5e" />
