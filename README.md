@@ -1,8 +1,6 @@
 # Azure_SIEM
 Documentation of my project on Azure SIEM 
 
-![Uploading Gemini_Generated_Image_2igyf52igyf52igy.png…]()
-
 Phase 1: Setting up the Azure Resource Group and Log Analytics Workspace
 
 Step 1 — Creating a Resource Group
